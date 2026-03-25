@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --color-bg: 241 245 249;
+    /* slate-100 */
+    --color-surface: 255 255 255;
+    /* white */
+    --color-tx-main: 15 23 42;
+    /* slate-900 */
+    --color-tx-muted: 71 85 105;
+    /* slate-600 */
+    --color-bd: 203 213 225;
+    /* slate-300 */
+
+    --color-accent: 14 165 233;
+    /* sky-500 */
+    --color-accent-hover: 2 132 199;
+    /* sky-600 */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Dark Mode */
+      --color-bg: 15 23 42;
+      /* #0f172a (Primary dark slate) */
+      --color-surface: 30 41 59;
+      /* slate-800 */
+      --color-tx-main: 255 255 255;
+      /* white */
+      --color-tx-muted: 148 163 184;
+      /* slate-400 */
+      --color-bd: 51 65 85;
+      /* slate-700 */
+
+      --color-accent: 56 189 248;
+      /* #38bdf8 (Sky blue) */
+      --color-accent-hover: 14 165 233;
+      /* #0ea5e9 */
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  @apply bg-background text-tx-main;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
