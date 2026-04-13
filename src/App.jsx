@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
+import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
 import useAnalytics from "./hooks/useAnalytics";
 
@@ -58,6 +59,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Portfolio />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

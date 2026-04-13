@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, messaging, getToken, onMessage } from "../firebase";
+import { db, auth } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
     collection,
     query,
@@ -9,7 +10,8 @@ import {
     doc,
     getDoc,
     updateDoc,
-    deleteDoc
+    deleteDoc,
+    increment
 } from "firebase/firestore";
 
 const AdminDashboard = () => {
@@ -28,11 +30,11 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         // Auth Check
-        const isAdmin = localStorage.getItem("isAdmin");
-        if (!isAdmin) {
-            navigate("/login");
-            return;
-        }
+        const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                navigate("/login");
+            }
+        });
 
         // 1. Fetch Overview Stats
         const fetchStats = async () => {
@@ -45,8 +47,8 @@ const AdminDashboard = () => {
             const todayDoc = await getDoc(doc(db, "analytics", `daily_${today}`));
             if (todayDoc.exists()) {
                 const dailyData = todayDoc.data();
-                setStats(prev => ({ 
-                    ...prev, 
+                setStats(prev => ({
+                    ...prev,
                     today_visits: dailyData.visits || 0,
                     unique_today: dailyData.unique_today || 0
                 }));
@@ -61,59 +63,41 @@ const AdminDashboard = () => {
         fetchStats();
 
         // 2. Real-time Messages Listener
+        let isFirstSnapshot = true;
         const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
+
+            // Trigger notification ONLY for new added documents that are unread
+            // and ONLY after the initial load
+            if (!isFirstSnapshot) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const newMsg = change.doc.data();
+                        if (newMsg.status === "unread") {
+                            setNotification({
+                                title: "New Message",
+                                body: `From: ${newMsg.name}`
+                            });
+                            setTimeout(() => setNotification(null), 5000);
+                        }
+                    }
+                });
+            }
+
+            isFirstSnapshot = false;
             setMessages(msgs);
             setLoading(false);
-
-            // Check for new unread messages to trigger local notification
-            const unreadCount = msgs.filter(m => m.status === "unread").length;
-            if (unreadCount > 0 && !loading) {
-                setNotification({
-                    title: "New Message",
-                    body: `You have ${unreadCount} unread message(s)`
-                });
-                setTimeout(() => setNotification(null), 5000);
-            }
         });
 
-        // 3. Setup FCM (Push Notifications)
-        const setupFCM = async () => {
-            try {
-                const VAPID_KEY = "BLZS53YnANUvLy-1igTzXhhTb8GyNuOaXEcyyzD81GHetRaWzCSKcay33xJ--U86qhEXzSZuDXqxxc_TA5uBl18";
 
-                if (VAPID_KEY === "YOUR_VAPID_KEY_FROM_FIREBASE_CONSOLE") {
-                    console.log("FCM: Please set your VAPID key in AdminDashboard.jsx to enable push notifications.");
-                    return;
-                }
-
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    const token = await getToken(messaging, {
-                        vapidKey: VAPID_KEY
-                    });
-                    // console.log("FCM Token:", token);
-                }
-            } catch (err) {
-                console.warn("FCM error:", err);
-            }
+        return () => {
+            unsubscribe();
+            authUnsubscribe();
         };
-
-        if (messaging) {
-            setupFCM();
-            onMessage(messaging, (payload) => {
-                setNotification({
-                    title: payload.notification.title,
-                    body: payload.notification.body
-                });
-            });
-        }
-
-        return () => unsubscribe();
     }, [navigate]);
 
     const handleMarkAsRead = async (id) => {
@@ -122,13 +106,34 @@ const AdminDashboard = () => {
 
     const handleDeleteMessage = async (id) => {
         if (window.confirm("Are you sure you want to delete this message?")) {
-            await deleteDoc(doc(db, "messages", id));
+            try {
+                // 1. Delete the message document
+                await deleteDoc(doc(db, "messages", id));
+
+                // 2. Decrement the total submissions count in analytics
+                const statsRef = doc(db, "analytics", "overview");
+                await updateDoc(statsRef, {
+                    total_submissions: increment(-1)
+                });
+            } catch (error) {
+                console.error("Error deleting message:", error);
+                alert("Failed to delete message. Check permissions.");
+            }
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("isAdmin");
-        navigate("/login");
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            // Clean up any remaining localStorage items from old auth systems
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            localStorage.removeItem("user");
+            localStorage.removeItem("isAdmin");
+            navigate("/login");
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
     };
 
     if (loading) return (
@@ -179,7 +184,7 @@ const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Project Analytics */}
-                <div className="lg:col-span-1 bg-surface border border-bd/30 rounded-2xl p-6 shadow-xl h-fit">
+                {/* <div className="lg:col-span-1 bg-surface border border-bd/30 rounded-2xl p-6 shadow-xl h-fit">
                     <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                         <span className="w-1.5 h-6 bg-accent rounded-full"></span>
                         Project Views
@@ -196,7 +201,7 @@ const AdminDashboard = () => {
                             <p className="text-tx-muted text-center py-4">No project data yet</p>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Messages List */}
                 <div className="lg:col-span-2 bg-surface border border-bd/30 rounded-2xl p-6 shadow-xl min-h-[500px]">

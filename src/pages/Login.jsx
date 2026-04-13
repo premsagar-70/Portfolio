@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -7,15 +9,23 @@ const Login = () => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                navigate("/admin");
+            }
+        });
+        return () => unsubscribe();
+    }, [navigate]);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Hardcoded admin details for testing as requested
-        if (email === "admin" && password === "admin@123") {
-            localStorage.setItem("isAdmin", "true");
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
             navigate("/admin");
-        } else {
-            // setError("Invalid credentials. Try admin / admin@123");
-            setError("Invalid credentials");
+        } catch (err) {
+            console.error("Login failed:", err);
+            setError("Invalid credentials. Please verify your email and password.");
         }
     };
 
@@ -36,11 +46,11 @@ const Login = () => {
                     <div>
                         <label className="block text-sm font-medium text-tx-muted mb-2">Username</label>
                         <input
-                            type="text"
+                            type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full bg-background border border-bd/50 rounded-lg px-4 py-3 text-tx-main focus:outline-none focus:border-accent transition-all"
-                            placeholder="admin"
+                            placeholder="admin@example.com"
                             required
                         />
                     </div>

@@ -21,10 +21,10 @@ const Contact = () => {
         try {
             // 1. Send Email via EmailJS
             await emailjs.sendForm(
-                'service_hy53gpg',
-                'template_cen05ud',
+                import.meta.env.VITE_EMAILJS_SERVICE_ID,
+                import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
                 formRef.current,
-                '8G9d7pXDJTOpfBz7S'
+                import.meta.env.VITE_EMAILJS_PUBLIC_KEY
             );
 
             // 2. Save to Firestore for Analytics and Admin Dashboard

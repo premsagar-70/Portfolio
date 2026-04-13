@@ -1,31 +1,25 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getAuth } from "firebase/auth";
 
 // [TIP] Use your own Firebase credentials here.
 // You can get these from the Firebase Console (Environment Settings > General > Your Apps)
 const firebaseConfig = {
-  apiKey: "AIzaSyDHyxVFC0dM8uu4owE5XCkWYMgfnfjRbfQ",
-  authDomain: "portfolio-696af.firebaseapp.com",
-  projectId: "portfolio-696af",
-  storageBucket: "portfolio-696af.firebasestorage.app",
-  messagingSenderId: "207710656703",
-  appId: "1:207710656703:web:5404c090ca6612dcf58e0a",
-  // measurementId: "G-218710656703"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDHyxVFC0dM8uu4owE5XCkWYMgfnfjRbfQ",
-//   authDomain: "portfolio-696af.firebaseapp.com",
-//   projectId: "portfolio-696af",
-//   storageBucket: "portfolio-696af.firebasestorage.app",
-//   messagingSenderId: "207710656703",
-//   appId: "1:207710656703:web:5404c090ca6612dcf58e0a"
-// };
-
+// Debug: Check if env variables are loaded correctly
+if (!firebaseConfig.apiKey) {
+  console.error("Firebase API Key is missing! Check your .env file and restart the dev server.");
+}
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+const auth = getAuth(app);
 
-export { db, messaging, getToken, onMessage };
+export { db, auth };
