@@ -40,7 +40,7 @@ const Hero = () => {
                     <div className="relative w-72 h-72 md:w-96 md:h-96 mx-auto">
                         <div className="absolute inset-0 bg-gradient-to-tr from-accent to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
                         <img
-                            src="/image.png" // Replace with actual profile text/image later or leave placeholder
+                            src="/images/image.png" // Replace with actual profile text/image later or leave placeholder
                             alt="Profile"
                             className="rounded-full object-cover w-full h-full border-4 border-secondary/50 relative z-10 shadow-2xl"
                         />

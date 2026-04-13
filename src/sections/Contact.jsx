@@ -1,27 +1,34 @@
 import React, { useState, useRef } from "react";
 import emailjs from '@emailjs/browser';
 import SectionWrapper from "../components/SectionWrapper";
+import useAnalytics from "../hooks/useAnalytics";
 
 const Contact = () => {
     const formRef = useRef();
     const [status, setStatus] = useState("idle");
+    const { trackFormSubmission } = useAnalytics();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus("loading");
 
+        const formData = {
+            name: formRef.current.name.value,
+            email: formRef.current.email.value,
+            message: formRef.current.message.value,
+        };
+
         try {
-            // Replace these strings with your actual EmailJS IDs.
-            // You can find these in your EmailJS dashboard:
-            // 1. Service ID (e.g., "service_xxxxx")
-            // 2. Template ID (e.g., "template_xxxxx")
-            // 3. Public Key (e.g., "user_xxxxx" or "public_xxxxx" found in Account > API keys)
+            // 1. Send Email via EmailJS
             await emailjs.sendForm(
                 'service_hy53gpg',
                 'template_cen05ud',
                 formRef.current,
                 '8G9d7pXDJTOpfBz7S'
             );
+
+            // 2. Save to Firestore for Analytics and Admin Dashboard
+            await trackFormSubmission(formData);
 
             setStatus("success");
             formRef.current.reset(); // Clear the form fields
