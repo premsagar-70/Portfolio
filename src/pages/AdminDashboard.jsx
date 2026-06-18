@@ -122,7 +122,8 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleLogout = async () => {
+    {/*    
+        const handleLogout = async () => {
         try {
             await signOut(auth);
             // Clean up any remaining localStorage items from old auth systems
@@ -135,6 +136,9 @@ const AdminDashboard = () => {
             console.error("Logout failed:", error);
         }
     };
+    
+    */}
+
 
     if (loading) return (
         <div className="min-h-screen bg-background flex items-center justify-center">
@@ -151,7 +155,8 @@ const AdminDashboard = () => {
                     <p className="text-tx-muted mt-1">Real-time portfolio performance monitoring</p>
                 </div>
                 <button
-                    onClick={handleLogout}
+                    // onClick={handleLogout}
+                    onClick={() => navigate("/logout")}
                     className="px-6 py-2 bg-surface border border-bd/50 rounded-full hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all shadow-lg"
                 >
                     Sign Out
@@ -176,7 +181,13 @@ const AdminDashboard = () => {
             {/* Main Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
                 <StatCard title="Total Visits" value={stats.total_visits || 0} color="blue" icon="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <StatCard title="Unique Visitors" value={stats.unique_visitors || 0} color="purple" icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <StatCard 
+                    title="Unique Visitors" 
+                    value={stats.unique_visitors || 0} 
+                    color="purple" 
+                    icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+                    onClick={() => navigate("/admin/daily-stats")}
+                />
                 <StatCard title="Today's Visits" value={stats.today_visits || 0} color="green" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <StatCard title="Unique Today" value={stats.unique_today || 0} color="cyan" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <StatCard title="Form Submissions" value={stats.total_submissions || 0} color="orange" icon="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -261,7 +272,7 @@ const AdminDashboard = () => {
     );
 };
 
-const StatCard = ({ title, value, color, icon }) => {
+const StatCard = ({ title, value, color, icon, onClick }) => {
     const colors = {
         blue: "text-blue-500 bg-blue-500/10",
         purple: "text-purple-500 bg-purple-500/10",
@@ -271,7 +282,10 @@ const StatCard = ({ title, value, color, icon }) => {
     };
 
     return (
-        <div className="bg-surface border border-bd/30 rounded-2xl p-6 shadow-xl transform transition-all hover:translate-y-[-4px]">
+        <div 
+            onClick={onClick}
+            className={`bg-surface border border-bd/30 rounded-2xl p-6 shadow-xl transform transition-all hover:translate-y-[-4px] ${onClick ? 'cursor-pointer hover:border-accent/50' : ''}`}
+        >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colors[color]}`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={icon}></path>

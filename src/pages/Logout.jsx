@@ -21,7 +21,9 @@ const Logout = () => {
                 console.error("Logout error:", error);
             } finally {
                 // Always redirect to login or home
-                navigate("/login");
+                setTimeout(() => {
+                    navigate("/login", { replace: true });
+                }, 2000); // 2 seconds delay
             }
         };
 

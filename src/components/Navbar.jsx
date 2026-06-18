@@ -52,7 +52,7 @@ const Navbar = () => {
             className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? "bg-background/90 backdrop-blur-md shadow-lg py-4" : "bg-transparent py-6"
                 }`}
         >
-            <div className="container mx-auto px-6 max-w-6xl flex justify-center items-center">
+            <div className="container mx-auto px-6 max-w-6xl flex justify-end md:justify-center items-center">
                 {/* <a href="#" className="text-2xl font-bold font-outfit text-tx-main">
                     Prem Sagar<span className="text-accent"></span>
                 </a> */}

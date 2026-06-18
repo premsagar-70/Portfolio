@@ -6,8 +6,10 @@ import {
   updateDoc, 
   collection, 
   addDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  arrayUnion
 } from "firebase/firestore";
+import { UAParser } from "ua-parser-js";
 
 // Simple flag to prevent multiple tracks in the same session/load
 let isTracked = false;
@@ -47,11 +49,57 @@ const useAnalytics = () => {
         unique_visitors: isNewVisitor ? increment(1) : increment(0)
       }, { merge: true });
 
+      const parser = new UAParser();
+      const result = parser.getResult();
+      
+      const browserInfo = result.browser.name 
+        ? `${result.browser.name} ${result.browser.version?.split('.')[0] || ''}`.trim() 
+        : "Unknown Browser";
+      
+      let deviceInfo = result.os.name || "Desktop";
+      if (result.device.vendor && result.device.model) {
+          deviceInfo = `${result.device.vendor} ${result.device.model}`;
+      } else if (result.device.model) {
+          deviceInfo = result.device.model;
+      } else if (result.os.name) {
+          deviceInfo = `${result.os.name} ${result.os.version || ''}`.trim();
+      }
+
+      // Attempt to get the precise device model using the modern Client Hints API (Chrome/Edge)
+      if (typeof navigator !== 'undefined' && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+          try {
+              const uaData = await navigator.userAgentData.getHighEntropyValues(['model', 'platform']);
+              if (uaData.model) {
+                  deviceInfo = `${uaData.platform} ${uaData.model}`;
+              }
+          } catch (e) {
+              // Ignore if browser blocks it
+          }
+      }
+
+      // Fallbacks and cleanups for generic/frozen user agents
+      if (deviceInfo === "Windows" || deviceInfo.startsWith("Windows 10")) {
+          deviceInfo = "Windows PC";
+      } else if (deviceInfo === "Mac OS") {
+          deviceInfo = "Apple Mac";
+      } else if (deviceInfo === "K" || deviceInfo.trim() === "") {
+          // Modern Android Chrome/Edge freezes the UA model as "K" to protect privacy.
+          deviceInfo = `${result.os.name || "Android"} Mobile`;
+      }
+
+      const visitDetails = {
+        time: new Date().toISOString(),
+        browser: browserInfo,
+        device: deviceInfo,
+        isNewVisitor: isNewVisitor
+      };
+
       // 2. Today's Visits Increment (Total vs Unique Today)
       await setDoc(dailyRef, {
         visits: increment(1),
         unique_today: isTodayFirstSession ? increment(1) : increment(0),
-        date: today
+        date: today,
+        visitLogs: arrayUnion(visitDetails)
       }, { merge: true });
     } catch (error) {
       console.warn("Analytics tracking error:", error);
