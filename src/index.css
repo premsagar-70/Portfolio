@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Light Theme ── */
+    --color-bg: 248 250 252;
+    --color-surface: 255 255 255;
+    --color-tx-main: 15 23 42;
+    --color-tx-muted: 100 116 139;
+    --color-bd: 226 232 240;
+    --color-accent: 79 70 229;
+    --color-accent-hover: 67 56 202;
+    --color-secondary: 236 72 153;
+  }
+
+  .dark {
+    /* ── Dark Theme ── */
+    --color-bg: 10 10 15;
+    --color-surface: 18 18 24;
+    --color-tx-main: 237 237 242;
+    --color-tx-muted: 148 148 165;
+    --color-bd: 35 35 45;
+    --color-accent: 99 102 241;
+    --color-accent-hover: 129 140 248;
+    --color-secondary: 244 114 182;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  @apply bg-background text-tx-main font-sans antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgb(var(--color-accent) / 0.25);
+  color: rgb(var(--color-tx-main));
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-bd));
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-tx-muted) / 0.5);
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent to-secondary;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite linear;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
